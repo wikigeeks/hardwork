@@ -58,7 +58,7 @@ def mainpage():
 def engine():
     return template
 
-def anyrequest(value,dbname):
+def anyrequest(value,dbname,stripped=True):
     value=value[1:]
     addr="https://www.wikidata.org/wiki/Q"
     db = sqlite3.connect(dbname)
@@ -78,21 +78,22 @@ def anyrequest(value,dbname):
     Qs=cursor.fetchall()
     db.close()
     QsL=list(set(Qs)-set(result))
-    #print(QsL)
-    #print(result)
     v=(len(Qs),len(QsL),len(result))
-    #print(v)
     vpro=(v[1]/v[0]*100,v[2]/v[0]*100)
     vres=''.join(("Нет: ",str(v[1])," (","%.3f" % float(vpro[0]),"%) ",
-    "Есть: ",str(v[2])," (","%.3f" % float(vpro[1]),"%) "))
+    "<br>Есть: ",str(v[2])," (","%.3f" % float(vpro[1]),"%) "))
 
     y=lambda x:'<br>'.join([''.join(("<a href='",addr,str(i[0]),"'>",i[1].title(),"</a>")) for i in x])
 
-    a=['''<div>
-    		<div id="WindowTrue"><span>Есть:</span><div id="ContentTrue">''',y(result),'''</div></div>
-    		<div id="WindowFalse"><span>Нет:</span><div id="ContentFalse">''',y(QsL),'''</div></div>
-    		<div id="percents">''',vres,'''</div>
-    	</div>''']
+
+    if not stripped:
+        a=['''<div>
+        		<div id="WindowTrue"><span>Есть:</span><div id="ContentTrue">''',y(result),'''</div></div>
+        		<div id="WindowFalse"><span>Нет:</span><div id="ContentFalse">''',y(QsL),'''</div></div>
+        		<div id="percents">''',vres,'''</div>
+        	</div>''']
+    else:
+        a=[y(result),'<hr>',y(QsL),'<hr>',vres]
     return '\n'.join(a)
 
 @app.route('/request/<value>')
